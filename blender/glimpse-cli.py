@@ -5,6 +5,7 @@ import os
 import sys
 import argparse
 import bpy
+import addon_utils
 
 if "--" in sys.argv:
     argv = sys.argv
@@ -14,7 +15,7 @@ else:
 
 parser = argparse.ArgumentParser(prog="glimpse-generator", add_help=False)
 
-parser.add_argument('--help-glimpse', help='Show this help message and exit', action='store_true')
+parser.add_argument('--help-glimpse', help='Show this help message and exit', action='help')
 parser.add_argument('--info', help='Load the mocap index and print summary information', action='store_true')
 parser.add_argument('--preload', help='Preload mocap files as actions before rendering', action='store_true')
 parser.add_argument('--purge', help='Purge mocap actions', action='store_true')
@@ -25,9 +26,26 @@ parser.add_argument('--name', default=os.getcwd(), help='Unique name for this re
 parser.add_argument('mocaps', help='Directory with motion capture files')
 args = parser.parse_args(argv)
 
-if args.help_glimpse:
-    parser.print_help();
-    bpy.ops.wm.quit_blender()
+glimpse_addon_name = 'Glimpse Training Data Generator'
+
+addon_dependencies = [
+    glimpse_addon_name,
+]
+
+dep_error = ""
+for dep in addon_dependencies:
+    addon_status = addon_utils.check(dep)
+    if addon_status[0] != True or addon_status[1] != True:
+        dep_error += "Addon '" + dep + "' has not been enabled through Blender's User Preferences\n"
+
+if dep_error != "":
+    print("\n")
+    print("Error:\n")
+    print(dep_error)
+    print("\n")
+    print("Please find the instructions for setting up the required addons in blender/README.md")
+    print("> https://github.com/glimpse-project/glimpse/blob/master/blender/README.md")
+    print("\n")
     sys.exit(1)
 
 if not os.path.isdir(args.mocaps):
